@@ -1,14 +1,45 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { RefreshCcw, Zap, Wifi, Battery, Cpu, ZapOff } from "lucide-react";
+import {
+  RefreshCcw,
+  Zap,
+  Wifi,
+  WifiOff,
+  Battery,
+  Cpu,
+  ZapOff,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { StatusType } from "@/types/device";
 
 const StatusCard = () => {
-  const [connectionStatus, setConnectionStatus] = useState(false);
+  const [deviceStatus, setDeviceStatus] = useState<StatusType>();
+
+  const initialStatus: StatusType = {
+    deviceId: "No status",
+    batteryLevel: 0,
+    wifiStrength: 0,
+    isConnected: false,
+  };
+
+  const fetchLunaStatus = async () => {
+    try {
+      const response = await fetch("/api/device/status");
+      const data = await response.json();
+      setDeviceStatus(data);
+      console.log("Device Status:", data);
+    } catch (error) {
+      console.error("Error fetching device status:", error);
+    }
+  };
 
   const toggleConnection = () => {
-    setConnectionStatus(!connectionStatus);
+    if (deviceStatus?.isConnected) {
+      setDeviceStatus(initialStatus);
+    } else {
+      fetchLunaStatus();
+    }
   };
 
   return (
@@ -17,21 +48,21 @@ const StatusCard = () => {
         <div className="flex items-center justify-between">
           <div>🤖 Luna Status</div>
           <div>
-            {connectionStatus ? (
+            {deviceStatus?.isConnected ? (
               <Badge className="ml-2 flex items-center gap-1 bg-green-100 text-green-800">
-                <Zap size={50} />
+                <Wifi size={50} />
                 Connected
               </Badge>
             ) : (
               <Badge className="ml-2 flex items-center gap-1 bg-red-100 text-red-800">
-                <ZapOff size={50} />
+                <WifiOff size={50} />
                 Disconnected
               </Badge>
             )}
           </div>
         </div>
         <div>
-          <Button size={"icon-sm"}>
+          <Button size={"icon-sm"} onClick={fetchLunaStatus}>
             <RefreshCcw />
           </Button>
         </div>
@@ -39,20 +70,24 @@ const StatusCard = () => {
       <div className="flex flex-col items-start w-full">
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Cpu size={"15"} />
-          <div>Device - {"LUNA #001"}</div>
+          <div>Device - {deviceStatus?.deviceId}</div>
         </div>
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Battery size={"15"} />
-          <div>Battery - {"80%"}</div>
+          <div>Battery - {deviceStatus?.batteryLevel}%</div>
         </div>
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Wifi size={"15"} />
-          <div>Wifi Strength - {"99ping"}</div>
+          <div>Wifi Strength - {deviceStatus?.wifiStrength} ping</div>
         </div>
         <div className="px-2 mt-5 w-full">
           <Button size={"sm"} className="w-full" onClick={toggleConnection}>
-            {connectionStatus ? <ZapOff size={"15"} /> : <Zap size={"15"} />}
-            {connectionStatus ? "Disconnect" : "Connect"}
+            {deviceStatus?.isConnected ? (
+              <ZapOff size={"15"} />
+            ) : (
+              <Zap size={"15"} />
+            )}
+            {deviceStatus?.isConnected ? "Disconnect" : "Connect"}
           </Button>
         </div>
       </div>
