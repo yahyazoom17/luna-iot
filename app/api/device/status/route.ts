@@ -9,7 +9,7 @@ import {
 
 export async function GET() {
   try {
-    const res = await getDeviceStatus("Luna#12345");
+    const res = await getDeviceStatus("luna-001");
     const data = res.rows[0];
     return new NextResponse(JSON.stringify(data), {
       status: 200,

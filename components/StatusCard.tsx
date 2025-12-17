@@ -42,6 +42,20 @@ const StatusCard = () => {
     }
   };
 
+  const wifiStatus = () => {
+    if (deviceStatus?.wifiStrength) {
+      if (deviceStatus.wifiStrength > -50) {
+        return "Excellent";
+      } else if (deviceStatus.wifiStrength > -70) {
+        return "Very Good";
+      } else if (deviceStatus.wifiStrength > -80) {
+        return "Good";
+      } else {
+        return "Very Poor";
+      }
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl p-5 border flex flex-col items-start gap-2 max-w-sm w-full">
       <div className="text-2xl font-semibold px-1 mb-3 flex flex-row justify-between w-full items-center">
@@ -70,15 +84,29 @@ const StatusCard = () => {
       <div className="flex flex-col items-start w-full">
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Cpu size={"15"} />
-          <div>Device - {deviceStatus?.deviceId}</div>
+          <div>Device = {deviceStatus?.deviceId}</div>
         </div>
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Battery size={"15"} />
-          <div>Battery - {deviceStatus?.batteryLevel}%</div>
+          <div>Battery = {deviceStatus?.batteryLevel}%</div>
         </div>
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Wifi size={"15"} />
-          <div>Wifi Strength - {deviceStatus?.wifiStrength} ping</div>
+          <div>
+            Wifi Strength = {deviceStatus?.wifiStrength} dBm{" "}
+            <span
+              className={`${
+                deviceStatus?.wifiStrength && deviceStatus.wifiStrength > -50
+                  ? "text-green-600"
+                  : deviceStatus?.wifiStrength &&
+                    deviceStatus.wifiStrength > -70
+                  ? "text-yellow-600"
+                  : "text-red-600"
+              } font-semibold text-xs`}
+            >
+              ({wifiStatus()})
+            </span>
+          </div>
         </div>
         <div className="px-2 mt-5 w-full">
           <Button size={"sm"} className="w-full" onClick={toggleConnection}>
