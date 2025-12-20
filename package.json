@@ -2,6 +2,7 @@
   "name": "luna",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,13 +18,15 @@
     "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.0.10",
     "tailwindcss": "^4",

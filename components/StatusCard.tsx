@@ -12,16 +12,32 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 import { StatusType } from "@/types/device";
+import { useEffect } from "react";
 
 const StatusCard = () => {
   const [deviceStatus, setDeviceStatus] = useState<StatusType>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const initialStatus: StatusType = {
-    deviceId: "No status",
+    deviceId: "No device connected",
     batteryLevel: 0,
     wifiStrength: 0,
     isConnected: false,
   };
+
+  useEffect(() => {
+    const connectToWebSocket = () => {
+      setIsLoading(true);
+      const ws = new WebSocket("ws://localhost:3001");
+      console.log("Connected to WebSocket!");
+      ws.onmessage = (event) => {
+        setDeviceStatus(JSON.parse(event.data));
+      };
+      setIsLoading(false);
+      return () => ws.close();
+    };
+    connectToWebSocket();
+  }, []);
 
   const fetchLunaStatus = async () => {
     try {
@@ -47,9 +63,9 @@ const StatusCard = () => {
       if (deviceStatus.wifiStrength > -50) {
         return "Excellent";
       } else if (deviceStatus.wifiStrength > -70) {
-        return "Very Good";
-      } else if (deviceStatus.wifiStrength > -80) {
         return "Good";
+      } else if (deviceStatus.wifiStrength > -80) {
+        return "Poor";
       } else {
         return "Very Poor";
       }
@@ -70,7 +86,7 @@ const StatusCard = () => {
             ) : (
               <Badge className="ml-2 flex items-center gap-1 bg-red-100 text-red-800">
                 <WifiOff size={50} />
-                Disconnected
+                {isLoading ? "Connecting to Luna..." : "Disconnected"}
               </Badge>
             )}
           </div>
@@ -84,16 +100,16 @@ const StatusCard = () => {
       <div className="flex flex-col items-start w-full">
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Cpu size={"15"} />
-          <div>Device = {deviceStatus?.deviceId}</div>
+          <div>Device = {deviceStatus?.deviceId || "No device connected"}</div>
         </div>
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Battery size={"15"} />
-          <div>Battery = {deviceStatus?.batteryLevel}%</div>
+          <div>Battery = {deviceStatus?.batteryLevel || 0}%</div>
         </div>
         <div className="text-md px-2 my-1 font-medium flex items-center flex-row gap-2">
           <Wifi size={"15"} />
           <div>
-            Wifi Strength = {deviceStatus?.wifiStrength} dBm{" "}
+            Wifi Strength = {deviceStatus?.wifiStrength || 0} dBm{" "}
             <span
               className={`${
                 deviceStatus?.wifiStrength && deviceStatus.wifiStrength > -50
@@ -104,7 +120,7 @@ const StatusCard = () => {
                   : "text-red-600"
               } font-semibold text-xs`}
             >
-              ({wifiStatus()})
+              ({deviceStatus?.wifiStrength ? wifiStatus() : "No Signal"})
             </span>
           </div>
         </div>
@@ -115,6 +131,7 @@ const StatusCard = () => {
             ) : (
               <Zap size={"15"} />
             )}
+            {isLoading && "Connecting to LUNA..."}
             {deviceStatus?.isConnected ? "Disconnect" : "Connect"}
           </Button>
         </div>
