@@ -2,6 +2,7 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <WebSocketsClient.h>
+#include "LunaEyes.h"
 
 const char* ssid = "Yahya";
 const char* password = "taj@1727";
@@ -9,8 +10,10 @@ const char* password = "taj@1727";
 // Your Next.js API URL
 // Example: http://192.168.1.100:3000/api/esp32
 const char* serverUrl = "http://192.168.0.104:3000/api/device/status";
+const char* webSocketUrl = "192.168.0.107";
 
 WebSocketsClient webSocket;
+LunaEyes luna;
 
 bool wsConnected = false;
 
@@ -34,7 +37,11 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length) {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  luna.begin();
+
+  luna.wakeup();
+  delay(1000);
 
   WiFi.begin(ssid, password);
   Serial.print("Connecting to WiFi");
@@ -49,8 +56,11 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   delay(1000);
-  webSocket.begin("192.168.0.104", 3001, "/");
+  webSocket.begin(webSocketUrl, 3001, "/");
   webSocket.onEvent(webSocketEvent);
+
+  // luna.happy();
+  delay(1000);
 }
 
 int getWiFiStrength() {
@@ -62,7 +72,7 @@ int getWiFiStrength() {
 
 void loop() {
   webSocket.loop();
-
+  luna.blink();
   static unsigned long lastSend = 0;
 
   if (wsConnected && millis() - lastSend > 1000) {
@@ -78,6 +88,7 @@ void loop() {
     serializeJson(doc, jsonData);
 
     bool sent = webSocket.sendTXT(jsonData);
+    luna.thinking(2);
     Serial.println(sent ? "📤 Sent Device Status OK" : "📛 Sending Device Status FAILED");
   }   
 
