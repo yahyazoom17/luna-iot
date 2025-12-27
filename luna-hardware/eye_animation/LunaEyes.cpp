@@ -10,7 +10,7 @@ LunaEyes::LunaEyes()
 {}
 
 void LunaEyes::begin() {
-    Wire.begin(21, 22);
+    Wire.begin(23, 21);
 
     if (!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
         while (1);

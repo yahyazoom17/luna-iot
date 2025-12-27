@@ -16,7 +16,7 @@ bool isStreaming = false;
 WebSocketsClient webSocket;
 
 // I2S Config
-#define I2S_WS 15
+#define I2S_WS 18
 #define I2S_SD 32
 #define I2S_SCK 14
 #define SAMPLE_RATE 16000

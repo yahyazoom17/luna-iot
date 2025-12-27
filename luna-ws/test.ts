@@ -5,33 +5,38 @@ import WebSocket from "ws";
 const wss = new WebSocketServer({ port: 3001 });
 
 wss.on("connection", (ws) => {
-  console.log("ESP32 Connected. Ready to stream audio.");
+  console.log("ESP32 connected for playback");
 
   ws.on("message", (data) => {
-    if (data.toString() === "GET_AUDIO") {
-      streamAudioFile(ws, "./recordings/harvard.wav");
+    if (data.toString() === "PLAY_LUNA") {
+      streamWavToEsp32(ws, "./recordings/harvard.wav");
     }
   });
 });
 
-function streamAudioFile(ws: WebSocket, filePath: string) {
-  const stream = fs.createReadStream(filePath, { highWaterMark: 1024 }); // Read in 1KB chunks
-
-  console.log("Streaming started...");
-
-  stream.on("data", (chunk) => {
-    // We pause the stream briefly to prevent buffer overflow on the ESP32
-    // For 16kHz Mono 16-bit, we need ~32KB per second.
-    stream.pause();
-    ws.send(chunk, { binary: true });
-
-    setTimeout(() => {
-      stream.resume();
-    }, 25); // Approximately 32ms of audio per 1024 byte chunk
+function streamWavToEsp32(ws: WebSocket, filePath: string) {
+  // We skip the 44-byte WAV header to send only raw PCM data
+  const readStream = fs.createReadStream(filePath, {
+    start: 44,
+    highWaterMark: 1024,
   });
 
-  stream.on("end", () => {
-    console.log("Streaming finished.");
-    ws.send("STREAM_FINISHED");
+  console.log("Streaming audio...");
+
+  readStream.on("data", (chunk) => {
+    // Pause the stream briefly to match the 16kHz sample rate
+    // (16000 samples/sec * 2 bytes/sample = 32000 bytes/sec)
+    readStream.pause();
+    ws.send(chunk, { binary: true });
+
+    // 1024 bytes is approx 32ms of audio at 16kHz
+    setTimeout(() => {
+      if (ws.readyState === 1) readStream.resume();
+    }, 30);
+  });
+
+  readStream.on("end", () => {
+    console.log("Playback finished.");
+    ws.send("PLAYBACK_COMPLETE");
   });
 }
